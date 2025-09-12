@@ -1,1 +1,2 @@
-export const JWT_SECRET = "Animation"
+const JWT_SECRET = "Animation"
+export default JWT_SECRET

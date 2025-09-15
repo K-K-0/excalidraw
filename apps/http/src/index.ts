@@ -1,6 +1,8 @@
 import express from 'express'
 import { prismaClient } from '@repo/db/client'
 import { CreateRoomSchema, CreateUserSchema, SigninSchema } from '@repo/common/types'
+import JWT_SECRET from '@repo/backend-common/config';
+import jwt from 'jsonwebtoken'
 
 
 const app = express()
@@ -35,7 +37,7 @@ app.post("/signup", async (req,res) => {
     }
 })
 
-app.post("/signin", (req,res) => {
+app.post("/signin", async (req,res) => {
     const parsedData = SigninSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({
@@ -44,9 +46,27 @@ app.post("/signin", (req,res) => {
         return;
     }
 
+    const user = await prismaClient.user.findFirst({
+        where: {
+            email: parsedData.data?.email,
+            password: parsedData.data.password
+        }
+    })
+
+    if (!user) {
+        res.status(403).json({
+            message: "Not Authorized"
+        })
+        return
+    }
+
+    const token = jwt.sign({ userId: user?.id }, JWT_SECRET)
+
+    res.json({ token })
+
 })
 
-app.post('/room', (req,res) => {
+app.post('/room', async (req,res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({
@@ -54,7 +74,24 @@ app.post('/room', (req,res) => {
         })
         return;
     }
+    // @ts-ignore: TODO: Fix this
+    const userId = req.userId
+
+    try {
+        const room = await prismaClient.room.create({
+            data: {
+                slug: parsedData.data.name,
+                adminId: userId
+            }
+        })
+
+        res.json({ room })
+    } catch (error) {
+        res.status(411).json({
+            message: "Room already exist with this name"
+        })
+    }
 
 })
 
-app.listen(8000)
+app.listen(7000)

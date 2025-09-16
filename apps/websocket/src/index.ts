@@ -29,7 +29,7 @@ function UserCheck(token: string): string | null {
     } catch (error) {
         return null
     }
-    return null
+    // return null
 }
 
 wss.on('connection', function connection(ws,request) {
@@ -75,6 +75,9 @@ wss.on('connection', function connection(ws,request) {
             user.room = user?.room.filter(x => x === parseData.room)
         }
 
+        console.log("message received")
+        console.log(parseData);
+
         if (parseData.type === "chat") {
             const roomId = parseData.roomId
             const message = parseData.message
@@ -87,19 +90,24 @@ wss.on('connection', function connection(ws,request) {
                 }
             })
 
+            console.log("message received")
+            console.log(parseData);
+
             users.forEach(user => {
                 if (user.room.includes(roomId)) {
-                    ws.send(JSON.stringify({
+                    // console.log("message received")
+                    // console.log(parseData);
+                    user.ws.send(JSON.stringify({
                         type: "chat",
                         message: message,
                         roomId
+                        
                     }))
+                    console.log("message received")
+                    console.log(parseData);
                 }
             })
         }
-
-
-
     })
 });
 

@@ -1,0 +1,15 @@
+.top-bar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+}
+
+.flex {
+    display: flex;
+    gap: 1rem;
+    /* Adjust as needed */
+}
+.canvas-container {
+    height: 100vh;
+    overflow: hidden;
+}

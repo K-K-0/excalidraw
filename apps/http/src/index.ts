@@ -3,10 +3,13 @@ import { prismaClient } from '@repo/db/client'
 import { CreateRoomSchema, CreateUserSchema, SigninSchema } from '@repo/common/types'
 import JWT_SECRET from '@repo/backend-common/config';
 import jwt from 'jsonwebtoken'
+import cors from "cors"
+import { middleware } from './middleware';
 
 
 const app = express()
 app.use(express.json());
+app.use(cors())
 
 
 app.post("/signup", async (req,res) => {
@@ -66,15 +69,14 @@ app.post("/signin", async (req,res) => {
 
 })
 
-app.post('/room', async (req,res) => {
+app.post('/room', middleware, async (req,res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({
-            message: "Incorrect inputs"
+             message: "Incorrect inputs"
         })
         return;
     }
-    // @ts-ignore: TODO: Fix this
     const userId = req.userId
 
     try {
@@ -94,4 +96,35 @@ app.post('/room', async (req,res) => {
 
 })
 
-app.listen(7000)
+app.get("/chats/:roomId", async (req, res) => {
+    console.log("hello")
+    try {
+        const roomId = req.params.roomId;
+        console.log(req.params.roomId);
+        const messages = await prismaClient.chat.findMany({
+            where: {
+                roomId: Number(roomId)
+            },
+            orderBy: {
+                id: "desc"
+            },
+            take: 1000
+        });
+
+        res.json({
+            messages
+        })
+    } catch (e) {
+        console.log(e);
+        res.json({
+            messages: []
+        })
+    }
+
+})
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

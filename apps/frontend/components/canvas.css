@@ -7,7 +7,6 @@
 .flex {
     display: flex;
     gap: 1rem;
-    /* Adjust as needed */
 }
 .canvas-container {
     height: 100vh;
